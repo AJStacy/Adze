@@ -1,10 +1,16 @@
 import { JSDOM } from 'jsdom';
+// @ts-ignore
+import browserEnv = require('browser-env');
 
 import * as AdzeLib from './src';
 import runDemo from './demo_funcs.js';
 
+browserEnv();
+
 const dom = new JSDOM(`<!DOCTYPE html><div id="test">Hello world</div>`);
 const el = dom.window.document.querySelector('#test');
+
+global.ADZE_ENV = 'dev';
 
 // const { adze, createShed, fireListeners, filterLabel, rerender } = AdzeLib;
 
