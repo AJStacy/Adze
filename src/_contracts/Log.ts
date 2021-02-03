@@ -42,13 +42,15 @@ export interface LogTimestamp {
   utc: string;
 }
 
+export type ModifierQueue = Array<() => void>;
+
 export type PrintFunction = (log: FinalLog, use_emoji: boolean) => LogRender;
 
 /**
  * Boolean flags that represent various states of how the log
  * should be printed.
  */
-interface LogFlags {
+export interface LogFlags {
   traceable: boolean;
   assertion?: boolean;
   expression?: boolean;
@@ -60,7 +62,7 @@ interface LogFlags {
  * Values of the log instance that determine how it should
  * be printed.
  */
-interface LogValues {
+export interface LogValues {
   cfg: Defaults;
   timestamp: LogTimestamp | null;
   stacktrace: string | null;
@@ -72,7 +74,7 @@ interface LogValues {
   labelVal?: Label;
   timeNowVal?: string;
   metaData: MetaData;
-  modifierQueue: Array<() => void>;
+  modifierQueue: ModifierQueue;
   printer: PrintFunction;
 }
 
