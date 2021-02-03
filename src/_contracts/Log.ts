@@ -51,7 +51,6 @@ export type PrintFunction = (log: FinalLog, use_emoji: boolean) => LogRender;
  * should be printed.
  */
 export interface LogFlags {
-  traceable: boolean;
   assertion?: boolean;
   expression?: boolean;
   isSilent: boolean;
