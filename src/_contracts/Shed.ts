@@ -1,4 +1,5 @@
-import { Log, Label, Defaults, MetaData } from '.';
+import { Defaults, MetaData } from '.';
+import { Label } from '../label';
 import { Configuration, LogLevelDefinition } from './Configuration';
 import { LogRender, LogTimestamp } from './Log';
 

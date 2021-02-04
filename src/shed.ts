@@ -2,7 +2,6 @@ import defaultsDeep from 'lodash/defaultsDeep';
 import {
   ShedConfig,
   Defaults,
-  Label,
   ShedUserConfig,
   FinalLog,
   Collection,
@@ -15,6 +14,7 @@ import {
   LabelMap,
   FilterAllowedCallback,
 } from './_contracts';
+import { Label } from './label';
 import { defaults, shed_defaults } from './_defaults';
 import { isString, formatLevels } from './util';
 import { makeLogData } from './terminators';

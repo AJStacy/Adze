@@ -1,4 +1,4 @@
-import { Label } from './Label';
+import { Label } from '../label';
 import { LogLevelDefinition, ConsoleMethod, Defaults } from '.';
 
 /**
@@ -139,15 +139,5 @@ export interface FinalLog extends Log {
  */
 type Arguments = unknown[];
 export type LogRender = [ConsoleMethod, Arguments];
-
-/**
- * The final value of a log after it has been terminated. This is useful for
- * gleaning the final render information and getting the Log instance for
- * unit testing purposes.
- */
-export interface TerminatedLog {
-  log: Log | FinalLog;
-  render: LogRender | null;
-}
 
 export type Collection = FinalLog[];
