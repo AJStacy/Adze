@@ -34,11 +34,16 @@ import { Label, addLabel, getLabel } from '../label';
 import { LogData } from './LogData';
 import { defaults } from '../_defaults';
 import { printLog } from '../printers';
-import { env } from '../global';
+import { Env } from '../Env';
 import { allowed, evalPasses } from '../conditions';
 import { shedExists } from '../shed';
 
 export class Log {
+  /**
+   * Environment class instance.
+   */
+  private env: Env = new Env();
+
   /**
    * The Adze log configuration merged with defaults.
    */
@@ -147,16 +152,132 @@ export class Log {
   // ======================================
   //   Terminating Methods (return void)
   // ======================================
-  // public attention logMethod('attention'),
-  // public error = logMethod('error'),
-  // public warn = logMethod('warn'),
-  // public info = logMethod('info'),
-  // public fail = logMethod('fail'),
-  // public success = logMethod('success'),
-  // public log = logMethod('log'),
-  // public debug = logMethod('debug'),
-  // public verbose = logMethod('verbose'),
-  // public custom = customMethod(),
+
+  /**
+   * Terminates the log at the *attention* level.
+   *
+   * **Default Level = 0**
+   *
+   * This level is useful for calling attention to
+   * important information and lives at the lowest level.
+   *
+   * You should use this sparingly since it's level is lower
+   * than error.
+   */
+  public attention(...args: unknown[]): TerminatedLog {
+    return this.logMethod('attention', args);
+  }
+
+  /**
+   * Terminates the log at the *error* level.
+   *
+   * **Default Level = 1**
+   *
+   * Use this for logging fatal errors or errors that
+   * impact functionality of your application.
+   */
+  public error(...args: unknown[]): TerminatedLog {
+    return this.logMethod('error', args);
+  }
+
+  /**
+   * Terminates the log at the *warning* level.
+   *
+   * **Default Level = 2**
+   *
+   * Use this for logging issues that may impact
+   * app performance in a less impactful way than
+   * an error.
+   */
+  public warn(...args: unknown[]): TerminatedLog {
+    return this.logMethod('warn', args);
+  }
+
+  /**
+   * Terminates the log at the *info* level.
+   *
+   * **Default Level = 3**
+   *
+   * Use this for logging general insights into your
+   * application. This level does not indicate any
+   * problems.
+   */
+  public info(...args: unknown[]): TerminatedLog {
+    return this.logMethod('info', args);
+  }
+
+  /**
+   * Terminates the log at the *fail* level.
+   *
+   * **Default Level = 4**
+   *
+   * Use this for logging network communication errors
+   * that do not break your application.
+   */
+  public fail(...args: unknown[]): TerminatedLog {
+    return this.logMethod('fail', args);
+  }
+
+  /**
+   * Terminates the log at the *success* level.
+   *
+   * **Default Level = 5**
+   *
+   * Use this for logging successful network communication.
+   */
+  public success(...args: unknown[]): TerminatedLog {
+    return this.logMethod('success', args);
+  }
+
+  /**
+   * Terminates the log at the *log* level.
+   *
+   * **Default Level = 6**
+   *
+   * Use this for general logging that doesn't apply
+   * to any of the lower levels.
+   */
+  public log(...args: unknown[]): TerminatedLog {
+    return this.logMethod('log', args);
+  }
+
+  /**
+   * Terminates the log at the *debug* level.
+   *
+   * **Default Level = 7**
+   *
+   * Use this for logging information that you typically
+   * do not want to see unless you are debugging a problem
+   * with your application. This is typically hidden by
+   * default.
+   */
+  public debug(...args: unknown[]): TerminatedLog {
+    return this.logMethod('debug', args);
+  }
+
+  /**
+   * Terminates the log at the *verbose* level.
+   *
+   * **Default Level = 8**
+   *
+   * Use this for logging extremely detailed debugging
+   * information. Use this level when the values you are
+   * logging are granular enough that they are no longer
+   * easily human readable.
+   */
+  public verbose(...args: unknown[]): TerminatedLog {
+    return this.logMethod('verbose', args);
+  }
+
+  /**
+   * Terminates the log at the provided custom log level.
+   *
+   * Custom log levels are defined within the Adze configuration object
+   * under the `custom_levels` property.
+   */
+  public custom(level_name: string, ...args: unknown[]): TerminatedLog {
+    return this.customMethod(level_name, args);
+  }
 
   /**
    * Seals the configuration of a log and returns a function that
@@ -579,7 +700,7 @@ export class Log {
    * Gets the log level definition from the log configuration.
    */
   private getDefinition(type: DefGroup, levelName: string): SelectedDef {
-    const shed = env().$shed;
+    const shed = this.env.global.$shed;
     if (shedExists(shed)) {
       const definition = shed.hasOverrides
         ? shed.overrides?.[type]?.[levelName]
@@ -609,7 +730,8 @@ export class Log {
         this.stacktrace = this.cfg.capture_stacktrace ? stacktrace() : null;
 
         // If a global context exists, check if this log is allowed.
-        const globally_allowed = env().$shed?.logGloballyAllowed(this) ?? true;
+        const globally_allowed =
+          this.env.global.$shed?.logGloballyAllowed(this) ?? true;
 
         if (globally_allowed) {
           // Render the log and print to the console
@@ -637,7 +759,7 @@ export class Log {
    * Stores this log in the Shed if the Shed exists.
    */
   private store(): void {
-    const shed = env().$shed;
+    const shed = this.env.global.$shed;
     if (shedExists(shed)) {
       shed.store(this);
     }
@@ -647,7 +769,7 @@ export class Log {
    * Fires listeners for this log instance if a Shed exists.
    */
   private fireListeners(): void {
-    const shed = env().$shed;
+    const shed = this.env.global.$shed;
     if (shedExists(shed)) {
       shed.fireListeners(this);
     }

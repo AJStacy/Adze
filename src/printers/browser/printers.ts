@@ -1,6 +1,6 @@
 import { FinalLog, LogLevelDefinition, LogRender } from '../../_contracts';
 import { applyRender, fNamespace } from '../shared';
-import { env, browser } from '../../global';
+import { Env } from '../../Env';
 import { initialCaps } from '../../util';
 
 // ------- PRINT METHODS -------- //
