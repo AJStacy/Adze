@@ -38,7 +38,7 @@ import { env } from '../global';
 import { allowed, evalPasses } from '../conditions';
 import { shedExists } from '../shed';
 
-export class Adze {
+export class Log {
   /**
    * The Adze log configuration merged with defaults.
    */
@@ -169,14 +169,14 @@ export class Adze {
    * sealed().log('Another log.'); // -> prints "#sealed [sealed-label] Another log."
    * ```
    */
-  public seal(): () => Adze {
+  public seal(): () => Log {
     // Run the modifier queue to apply their results
     this.runModifierQueue();
     // Clear the queue as to not repeat the actions when the subsequent logs are terminated.
     this.modifierQueue = [];
     // Create a new Adze log and hydrate it with the data from this instance.
     // This effectively clones the Adze log.
-    return () => new Adze().hydrate(this.data);
+    return () => new Log().hydrate(this.data);
   }
 
   /**
@@ -262,7 +262,7 @@ export class Adze {
    *
    * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/count)
    */
-  public get count(): Adze {
+  public get count(): this {
     return this.modifier(() => {
       if (this.labelVal) {
         this.labelVal.addCount();
@@ -275,7 +275,7 @@ export class Adze {
    *
    * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/countReset)
    */
-  public get countReset(): Adze {
+  public get countReset(): this {
     return this.modifier(() => {
       if (this.labelVal) {
         this.labelVal.resetCount();
@@ -288,7 +288,7 @@ export class Adze {
    *
    * This is a non-standard method.
    */
-  public get countClear(): Adze {
+  public get countClear(): this {
     return this.modifier(() => {
       if (this.labelVal) {
         this.labelVal.clearCount();
@@ -300,7 +300,7 @@ export class Adze {
    * Instructs the log terminator to add the key/value pairs from the
    * thread context to the console output.
    */
-  public get dump(): Adze {
+  public get dump(): this {
     return this.modifier(() => {
       this.dumpContext = true;
     });
@@ -310,7 +310,7 @@ export class Adze {
    * Assign meta data to this log instance that is retrievable
    * in a log listener.
    */
-  public meta<T>(key: string, val: T): Adze {
+  public meta<T>(key: string, val: T): this {
     return this.modifier(() => {
       this.metaData[key] = val;
     });
@@ -322,7 +322,7 @@ export class Adze {
    *
    * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/dir)
    */
-  public get dir(): Adze {
+  public get dir(): this {
     return this.modifier(() => {
       this.printer = printDir;
     });
@@ -334,7 +334,7 @@ export class Adze {
    *
    * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/dirxml)
    */
-  public get dirxml(): Adze {
+  public get dirxml(): this {
     return this.modifier(() => {
       this.printer = printDirxml;
     });
@@ -345,7 +345,7 @@ export class Adze {
    *
    * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/table)
    */
-  public get table(): Adze {
+  public get table(): this {
     return this.modifier(() => {
       this.printer = printTable;
     });
@@ -355,7 +355,7 @@ export class Adze {
    * This modifier method allows the log to execute normally but
    * prevent it from printing to the console.
    */
-  public get silent(): Adze {
+  public get silent(): this {
     return this.modifier(() => {
       this.isSilent = true;
     });
@@ -366,7 +366,7 @@ export class Adze {
    *
    * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/group)
    */
-  public get group(): Adze {
+  public get group(): this {
     return this.modifier(() => {
       this.printer = printGroup();
     });
@@ -377,7 +377,7 @@ export class Adze {
    *
    * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/groupCollapsed)
    */
-  public get groupCollapsed(): Adze {
+  public get groupCollapsed(): this {
     return this.modifier(() => {
       this.printer = printGroupCollapsed();
     });
@@ -388,7 +388,7 @@ export class Adze {
    *
    * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/groupEnd)
    */
-  public get groupEnd(): Adze {
+  public get groupEnd(): this {
     return this.modifier(() => {
       this.printer = printGroupEnd;
     });
@@ -401,7 +401,7 @@ export class Adze {
    * This is a non-standard API, but it replaces the need to provide
    * a label to `count` or `time`.
    */
-  public label(name: string): Adze {
+  public label(name: string): this {
     return this.prependModifier(() => {
       this.labelVal = addLabel(getLabel(name) ?? new Label(name));
     });
@@ -413,7 +413,7 @@ export class Adze {
    *
    * This is a non-standard API.
    */
-  public namespace(ns: string | string[]): Adze {
+  public namespace(ns: string | string[]): this {
     return this.modifier(() => {
       this.namespaceVal = isString(ns) ? [ns] : ns;
     });
@@ -422,7 +422,7 @@ export class Adze {
   /**
    * An alias for `namespace()`.
    */
-  public ns(ns: string | string[]): Adze {
+  public ns(ns: string | string[]): this {
     return this.namespace(ns);
   }
 
@@ -431,7 +431,7 @@ export class Adze {
    *
    * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/trace)
    */
-  public get trace(): Adze {
+  public get trace(): this {
     return this.modifier(() => {
       this.printer = printTrace();
     });
@@ -442,7 +442,7 @@ export class Adze {
    *
    * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/console/assert)
    */
-  public assert(assertion: boolean): Adze {
+  public assert(assertion: boolean): this {
     return this.modifier(() => {
       this.assertion = assertion;
     });
@@ -453,7 +453,7 @@ export class Adze {
    *
    * This is a non-standard method.
    */
-  public test(expression: boolean): Adze {
+  public test(expression: boolean): this {
     return this.modifier(() => {
       this.expression = expression;
     });
@@ -465,7 +465,7 @@ export class Adze {
    *
    * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/time).
    */
-  public get time(): Adze {
+  public get time(): this {
     return this.modifier(() => {
       if (this.labelVal) {
         this.labelVal.startTime();
@@ -478,7 +478,7 @@ export class Adze {
    *
    * This is a non-standard method.
    */
-  public get timeNow(): Adze {
+  public get timeNow(): this {
     return this.modifier(() => {
       if (this.labelVal) {
         this.labelVal.captureTimeNow();
@@ -496,7 +496,7 @@ export class Adze {
    *
    * MDN API Docs [here](https://developer.mozilla.org/en-US/docs/Web/API/Console/timeEnd).
    */
-  public get timeEnd(): Adze {
+  public get timeEnd(): this {
     return this.modifier(() => {
       if (this.labelVal) {
         this.labelVal.endTime();
@@ -518,6 +518,10 @@ export class Adze {
     return this.labelVal?.getContext() ?? {};
   }
 
+  // public get bundle(): Bundle {
+  //   return;
+  // }
+
   // ==============================
   //   Private Methods
   // ==============================
@@ -525,7 +529,7 @@ export class Adze {
   /**
    * Queues a modifier method for execution when the log is terminated.
    */
-  private modifier(func: () => void): Adze {
+  private modifier(func: () => void): this {
     this.modifierQueue = this.modifierQueue.concat([func]);
     return this;
   }
@@ -534,7 +538,7 @@ export class Adze {
    * Queues a modifier method for execution at the beginning of the queue when the log is terminated.
    * This is used to ensure that labels are applied before modifiers that use labels are executed.
    */
-  private prependModifier(func: () => void): Adze {
+  private prependModifier(func: () => void): this {
     this.modifierQueue = [func].concat(this.modifierQueue);
     return this;
   }
@@ -654,8 +658,7 @@ export class Adze {
   // ===================================
 
   /**
-   * Creates a slimmed down object comprised of data from
-   * the final log.
+   * Creates a slimmed down object comprised of data from a log.
    */
   public get data(): LogData {
     return new LogData(this, {
@@ -683,7 +686,7 @@ export class Adze {
   /**
    * Hydrate this log's properties from a log data object.
    */
-  public hydrate(data: LogData): Adze {
+  public hydrate(data: LogData): this {
     this.cfg = cloneDeep(data.cfg);
     this.level = data.level;
     this.timestamp = cloneObject<LogTimestamp>(data.timestamp);

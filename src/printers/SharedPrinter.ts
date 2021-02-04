@@ -1,12 +1,12 @@
 import { FinalLog, LogRender, ConsoleMethod } from '../_contracts';
-import { Adze } from '../AdzeClass';
+import { Log } from '../Log';
 import { env } from '../global';
 import { isString } from '../util';
 
 export class SharedPrinter {
-  private log: Adze;
+  private log: Log;
 
-  constructor(log: Adze) {
+  constructor(log: Log) {
     this.log = log;
   }
 

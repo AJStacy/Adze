@@ -5,7 +5,7 @@ import {
   LabelData,
   LogTimestamp,
 } from '../_contracts';
-import { Adze } from './Adze';
+import { Log } from './Log';
 
 export interface LogDataValues {
   cfg: Defaults;
@@ -29,14 +29,14 @@ export class LogData {
   /**
    * The Adze log instance associated to this log data.
    */
-  public readonly log: Adze;
+  public readonly log: Log;
 
   /**
    * Data values derived from an Adze log instance.
    */
   public readonly values: LogDataValues;
 
-  constructor(log: Adze, values: LogDataValues) {
+  constructor(log: Log, values: LogDataValues) {
     this.log = log;
     this.values = values;
   }

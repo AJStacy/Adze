@@ -1,5 +1,5 @@
 import { LogLevelDefinition, ConsoleMethod, Defaults, Arguments } from '.';
-import { Adze } from '../AdzeClass';
+import { Log } from '../Log';
 
 /**
  * The final value of a log after it has been terminated. This is useful for
@@ -7,7 +7,7 @@ import { Adze } from '../AdzeClass';
  * unit testing purposes.
  */
 export interface TerminatedLog {
-  log: Adze;
+  log: Log;
   render: LogRender | null;
 }
 
