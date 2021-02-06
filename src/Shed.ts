@@ -13,7 +13,7 @@ import {
   LabelMap,
   FilterAllowedCallback,
 } from './_contracts';
-import { Log } from './Log';
+import { FinalLogData } from './Log';
 import { Label } from './label';
 import { defaults, shed_defaults } from './_defaults';
 import { isString, formatLevels } from './util';
@@ -127,7 +127,7 @@ export class Shed {
   /**
    * Store a log in the shed for later recall.
    */
-  public store(log: Log): void {
+  public store(log: FinalLogData): void {
     if (this.cache.length < this.cfg.cache_limit) {
       this.cache = this.cache.concat([log]);
     }
@@ -252,8 +252,7 @@ export class Shed {
    * Fire any log listeners for the provided log. Passes the log render
    * and a slimmed down log data object.
    */
-  public fireListeners(log: Log): void {
-    const log_data = makeLogData(log);
+  public fireListeners(log: FinalLogData): void {
     this.listeners.get(log.level)?.forEach((listener) => {
       listener(log_data, log.render);
     });
@@ -267,7 +266,7 @@ export class Shed {
    * Returns a boolean indicating if this log instance should be
    * allowed to print.
    */
-  public logGloballyAllowed(log: Log): boolean {
+  public logGloballyAllowed(log: FinalLogData): boolean {
     return (
       !this.hideAll &&
       this.levelAllowed(log) &&
@@ -280,7 +279,7 @@ export class Shed {
    * Validate that the current level set on the log is allowed based on
    * the global filter rules.
    */
-  private levelAllowed(log: Log): boolean {
+  private levelAllowed(log: FinalLogData): boolean {
     return this.filterAllowed('level', (filter, func) => {
       const source = this.cfg.filters?.level?.[filter] ?? ([] as number[]);
       return this[func]<number>(source, log.level);
@@ -291,7 +290,7 @@ export class Shed {
    * Validate that the current label set on the log is allowed based on
    * the global filter rules.
    */
-  private labelAllowed(log: Log): boolean {
+  private labelAllowed(log: FinalLogData): boolean {
     return this.filterAllowed('label', (filter, func) => {
       const source = this.cfg.filters?.label?.[filter] ?? ([] as string[]);
       return this[func]<string>(source, log?.labelVal?.name ?? '');
@@ -302,7 +301,7 @@ export class Shed {
    * Validate that at least one of the current namespaces set on the log
    * is allowed based on the global filter rules.
    */
-  private namespaceAllowed(log: Log): boolean {
+  private namespaceAllowed(log: FinalLogData): boolean {
     return this.filterAllowed('namespace', (filter, func) => {
       const source = this.cfg.filters?.namespace?.[filter] ?? ([] as string[]);
       const target = log.namespaceVal;
