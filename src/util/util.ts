@@ -1,6 +1,6 @@
 import { Defaults, LogLevels, LevelFilter, LogRender } from '../_contracts';
 import { isString, isArray, isDefined } from './type-guards';
-import { env } from '../global';
+import { Env } from '../Env';
 
 /**
  * Capitalizes the first character of the provided string.
@@ -87,7 +87,7 @@ export function createArrayOfNumbers(start: number, end: number): number[] {
  */
 export function toConsole(render: LogRender, is_silent: boolean): LogRender {
   const [method, args] = render;
-  if (env().ADZE_ENV !== 'dev' && !is_silent) {
+  if (Env.global().ADZE_ENV !== 'dev' && !is_silent) {
     console[method](...args);
   }
   return render;

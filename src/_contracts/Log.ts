@@ -1,20 +1,5 @@
 import { Label } from '../label';
-import { LogLevelDefinition, ConsoleMethod, Defaults } from '.';
-
-/**
- * Fingerprint of the function that is called when you execute
- * a log method such as info().
- */
-export type LogFunction = (...args: unknown[]) => TerminatedLog;
-
-/**
- * Fingerprint of the function that is called when you execute
- * a custom log method defined in the configuration.
- */
-export type CustomLogFunction = (
-  levelName: string,
-  ...args: unknown[]
-) => TerminatedLog;
+import { LogLevelDefinition, ConsoleMethod, Defaults, LabelData } from '.';
 
 /**
  * The keys of the default terminating log methods included with Adze.
@@ -30,13 +15,6 @@ export type TerminatingMethodKeys =
   | 'debug'
   | 'verbose';
 
-/**
- * The configuration interface for the default Adze terminating log methods.
- */
-export type TerminatingMethods = {
-  [method in TerminatingMethodKeys]: LogFunction;
-};
-
 export interface LogTimestamp {
   unixMilli: number;
   utc: string;
@@ -44,7 +22,16 @@ export interface LogTimestamp {
 
 export type ModifierQueue = Array<() => void>;
 
-export type PrintFunction = (log: FinalLog, use_emoji: boolean) => LogRender;
+export type PrintMethodNames =
+  | 'Dir'
+  | 'Dirxml'
+  | 'Log'
+  | 'Group'
+  | 'GroupCollapsed'
+  | 'GroupEnd'
+  | 'Trace'
+  | 'Table';
+export type PrintMethod = `print${PrintMethodNames}`;
 
 /**
  * Boolean flags that represent various states of how the log
@@ -120,11 +107,7 @@ interface LogMethods {
 /**
  * The final Adze log object prototype interface.
  */
-export interface Log
-  extends LogFlags,
-    LogValues,
-    LogMethods,
-    TerminatingMethods {}
+export interface Log extends LogFlags, LogValues, LogMethods {}
 
 export interface FinalLog extends Log {
   level: number;
@@ -141,3 +124,28 @@ type Arguments = unknown[];
 export type LogRender = [ConsoleMethod, Arguments];
 
 export type Collection = FinalLog[];
+
+export interface LogDataValues {
+  cfg: Defaults;
+  level: number | null;
+  definition: LogLevelDefinition | null;
+  args: unknown[] | null;
+  timestamp: LogTimestamp | null;
+  stacktrace: string | null;
+  namespace: string[] | null;
+  dumpContext: boolean;
+  meta: MetaData;
+  context: MetaData;
+  label: LabelData;
+  timeNow: string | null;
+  assertion?: boolean;
+  expression?: boolean;
+  isSilent: boolean;
+}
+
+export interface FinalLogDataValues extends LogDataValues {
+  level: number;
+  definition: LogLevelDefinition;
+  args: unknown[];
+  timestamp: LogTimestamp;
+}

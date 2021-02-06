@@ -6,41 +6,32 @@ import {
   LogRender,
   LogTimestamp,
   ModifierQueue,
-  PrintFunction,
   MetaData,
   LogLevelDefinition,
   TerminatedLog,
   SelectedDef,
   DefGroup,
+  PrintMethod,
+  LogDataValues,
+  FinalLogDataValues,
 } from '../_contracts';
-import {
-  printDir,
-  printDirxml,
-  printTable,
-  printGroup,
-  printGroupCollapsed,
-  printGroupEnd,
-  printTrace,
-} from '../printers';
-import {
-  isString,
-  cloneObject,
-  cloneArray,
-  stacktrace,
-  timestamp,
-  toConsole,
-} from '../util';
+import { isString, stacktrace, timestamp, toConsole } from '../util';
 import { Label, addLabel, getLabel } from '../label';
-import { LogData } from './LogData';
+import { LogData, FinalLogData } from '.';
 import { defaults } from '../_defaults';
-import { printLog } from '../printers';
 import { Env } from '../Env';
-import { allowed, evalPasses } from '../conditions';
+import { Printer } from '../printers';
+import { allowed } from '../conditions';
 import { shedExists } from '../shed';
 
 export class Log {
   /**
-   * Environment class instance.
+   * The Printer class constructor.
+   */
+  private Printer: typeof Printer;
+
+  /**
+   * Instance of the Env class.
    */
   private env: Env = new Env();
 
@@ -52,7 +43,7 @@ export class Log {
   /**
    * The level of this log instance.
    */
-  private level: number | null = null;
+  private _level: number | null = null;
 
   /**
    * The log level definition selected for this log
@@ -83,12 +74,12 @@ export class Log {
   /**
    * The namespaces assigned to this log.
    */
-  private namespaceVal: string[] | null = null;
+  private _namespaceVal: string[] | null = null;
 
   /**
    * The label instance assigned to this log.
    */
-  private labelVal: Label | null = null;
+  private _labelVal: Label | null = null;
 
   /**
    * The time ellapsed when this log was terminated.
@@ -105,7 +96,7 @@ export class Log {
    * The function used to generate a log render when
    * the log is terminated.
    */
-  private printer: PrintFunction = printLog();
+  private printer: PrintMethod = 'printLog';
 
   /**
    * Meta data attached to this log instance through the
@@ -145,8 +136,31 @@ export class Log {
    */
   private dumpContext = false;
 
-  constructor(user_cfg?: Configuration) {
+  constructor(printer: typeof Printer, env: Env, user_cfg?: Configuration) {
+    this.Printer = printer;
+    this.env = env;
     this.cfg = defaultsDeep(user_cfg, defaults) as Defaults;
+  }
+
+  /**
+   * Public getter for the level of this log.
+   */
+  public get level(): number | null {
+    return this._level;
+  }
+
+  /**
+   * Public getter for the namespace of this log.
+   */
+  public get namespaceVal(): string[] | null {
+    return this._namespaceVal;
+  }
+
+  /**
+   * Public getter for the label of this log.
+   */
+  public get labelVal(): Label | null {
+    return this._labelVal;
   }
 
   // ======================================
@@ -297,7 +311,7 @@ export class Log {
     this.modifierQueue = [];
     // Create a new Adze log and hydrate it with the data from this instance.
     // This effectively clones the Adze log.
-    return () => new Log().hydrate(this.data);
+    return () => new Log(this.Printer, this.env).hydrate(this.data);
   }
 
   /**
@@ -344,8 +358,8 @@ export class Log {
     // Check if the log has a label. If not, console.warn the user.
     // If the log has a label, attach the context to the label.
     this.runModifierQueue();
-    if (this.labelVal) {
-      this.labelVal.addContext(key, value);
+    if (this._labelVal) {
+      this._labelVal.addContext(key, value);
     } else {
       console.warn('Thread context was not added! Threads must have a label.');
     }
@@ -355,8 +369,8 @@ export class Log {
    * Closes a thread assigned to the log by clearing the context values.
    */
   public close(): void {
-    if (this.labelVal) {
-      this.labelVal.clearContext();
+    if (this._labelVal) {
+      this._labelVal.clearContext();
     }
   }
 
@@ -385,8 +399,8 @@ export class Log {
    */
   public get count(): this {
     return this.modifier(() => {
-      if (this.labelVal) {
-        this.labelVal.addCount();
+      if (this._labelVal) {
+        this._labelVal.addCount();
       }
     });
   }
@@ -398,8 +412,8 @@ export class Log {
    */
   public get countReset(): this {
     return this.modifier(() => {
-      if (this.labelVal) {
-        this.labelVal.resetCount();
+      if (this._labelVal) {
+        this._labelVal.resetCount();
       }
     });
   }
@@ -411,8 +425,8 @@ export class Log {
    */
   public get countClear(): this {
     return this.modifier(() => {
-      if (this.labelVal) {
-        this.labelVal.clearCount();
+      if (this._labelVal) {
+        this._labelVal.clearCount();
       }
     });
   }
@@ -445,7 +459,7 @@ export class Log {
    */
   public get dir(): this {
     return this.modifier(() => {
-      this.printer = printDir;
+      this.printer = 'printDir';
     });
   }
 
@@ -457,7 +471,7 @@ export class Log {
    */
   public get dirxml(): this {
     return this.modifier(() => {
-      this.printer = printDirxml;
+      this.printer = 'printDirxml';
     });
   }
 
@@ -468,7 +482,7 @@ export class Log {
    */
   public get table(): this {
     return this.modifier(() => {
-      this.printer = printTable;
+      this.printer = 'printTable';
     });
   }
 
@@ -489,7 +503,7 @@ export class Log {
    */
   public get group(): this {
     return this.modifier(() => {
-      this.printer = printGroup();
+      this.printer = 'printGroup';
     });
   }
 
@@ -500,7 +514,7 @@ export class Log {
    */
   public get groupCollapsed(): this {
     return this.modifier(() => {
-      this.printer = printGroupCollapsed();
+      this.printer = 'printGroupCollapsed';
     });
   }
 
@@ -511,7 +525,7 @@ export class Log {
    */
   public get groupEnd(): this {
     return this.modifier(() => {
-      this.printer = printGroupEnd;
+      this.printer = 'printGroupEnd';
     });
   }
 
@@ -524,7 +538,7 @@ export class Log {
    */
   public label(name: string): this {
     return this.prependModifier(() => {
-      this.labelVal = addLabel(getLabel(name) ?? new Label(name));
+      this._labelVal = addLabel(getLabel(name) ?? new Label(name));
     });
   }
 
@@ -536,7 +550,7 @@ export class Log {
    */
   public namespace(ns: string | string[]): this {
     return this.modifier(() => {
-      this.namespaceVal = isString(ns) ? [ns] : ns;
+      this._namespaceVal = isString(ns) ? [ns] : ns;
     });
   }
 
@@ -554,7 +568,7 @@ export class Log {
    */
   public get trace(): this {
     return this.modifier(() => {
-      this.printer = printTrace();
+      this.printer = 'printTrace';
     });
   }
 
@@ -588,8 +602,8 @@ export class Log {
    */
   public get time(): this {
     return this.modifier(() => {
-      if (this.labelVal) {
-        this.labelVal.startTime();
+      if (this._labelVal) {
+        this._labelVal.startTime();
       }
     });
   }
@@ -601,8 +615,8 @@ export class Log {
    */
   public get timeNow(): this {
     return this.modifier(() => {
-      if (this.labelVal) {
-        this.labelVal.captureTimeNow();
+      if (this._labelVal) {
+        this._labelVal.captureTimeNow();
       } else {
         this.timeNowVal = Label.createTimeNow();
       }
@@ -619,8 +633,8 @@ export class Log {
    */
   public get timeEnd(): this {
     return this.modifier(() => {
-      if (this.labelVal) {
-        this.labelVal.endTime();
+      if (this._labelVal) {
+        this._labelVal.endTime();
       }
     });
   }
@@ -636,7 +650,7 @@ export class Log {
    * Getter shortcut for retrieving MDC context from the log instance.
    */
   public get context(): MetaData {
-    return this.labelVal?.getContext() ?? {};
+    return this._labelVal?.getContext() ?? {};
   }
 
   // public get bundle(): Bundle {
@@ -721,10 +735,10 @@ export class Log {
       this.runModifierQueue();
 
       // Check the test modifiers.
-      if (evalPasses(this)) {
+      if (this.evalPasses()) {
         // Save values to this log instance for later recall
         this.args = args;
-        this.level = def.level;
+        this._level = def.level;
         this.definition = def;
         this.timestamp = timestamp();
         this.stacktrace = this.cfg.capture_stacktrace ? stacktrace() : null;
@@ -735,20 +749,44 @@ export class Log {
 
         if (globally_allowed) {
           // Render the log and print to the console
-          const render = toConsole(print(this), this.isSilent);
+          const render = new Printer(this.data)[this.printer]();
 
-          // Fire log events
-          this.store();
-          this.fireListeners();
+          if (render) {
+            // Write the LogRender to the console.
+            toConsole(render, this.isSilent);
 
-          // Return the terminated log object for testing purposes
-          return { log: this, render };
+            // Fire log events
+            this.store();
+            this.fireListeners();
+
+            // Return the terminated log object for testing purposes
+            return { log: this, render };
+          }
         }
       }
     }
 
     // Return the terminated log object for testing purposes
     return { log: this, render: null };
+  }
+
+  /**
+   * Check if any assertions or expressions pass for this log to terminate.
+   */
+  private evalPasses(): boolean {
+    if (this.assertion !== undefined && this.expression !== undefined) {
+      console.warn(
+        'You have declared both an assertion and test on the same log. Please only declare one or nefarious results may occur.'
+      );
+      return true;
+    }
+    if (this.assertion !== undefined) {
+      return this.assertion === false;
+    }
+    if (this.expression !== undefined) {
+      return this.expression === true;
+    }
+    return true;
   }
 
   // ===================================
@@ -782,46 +820,61 @@ export class Log {
   /**
    * Creates a slimmed down object comprised of data from a log.
    */
-  public get data(): LogData {
-    return new LogData(this, {
+  public get data(): LogData | FinalLogData {
+    const values: LogDataValues = {
       cfg: cloneDeep(this.cfg),
-      level: this.level,
-      timestamp: cloneObject<LogTimestamp>(this.timestamp),
+      level: this._level,
+      definition: this.definition ? { ...this.definition } : null,
+      args: this.args ? [...this.args] : null,
+      timestamp: this.timestamp ? { ...this.timestamp } : null,
       stacktrace: this.stacktrace,
-      definition: cloneObject<LogLevelDefinition>(this.definition),
-      args: cloneArray<unknown>(this.args),
-      namespace: cloneArray<string>(this.namespaceVal),
+      namespace: this._namespaceVal ? [...this._namespaceVal] : null,
       label: {
-        name: this.labelVal?.name ?? null,
-        timeNow: this.labelVal?.timeNow ?? null,
-        timeEllapsed: this.labelVal?.timeEllapsed ?? null,
-        count: this.labelVal?.count ?? null,
+        name: this._labelVal?.name ?? null,
+        timeNow: this._labelVal?.timeNow ?? null,
+        timeEllapsed: this._labelVal?.timeEllapsed ?? null,
+        count: this._labelVal?.count ?? null,
       },
       dumpContext: this.dumpContext,
       isSilent: this.isSilent,
       timeNow: this.timeNowVal,
       meta: { ...this.metaData },
       context: { ...this.context },
-    });
+    };
+    if (this.isFinalLogData(values)) {
+      return new FinalLogData(this, values);
+    }
+    return new LogData(this, values);
   }
 
   /**
    * Hydrate this log's properties from a log data object.
    */
-  public hydrate(data: LogData): this {
+  public hydrate(data: LogData | FinalLogData): this {
     this.cfg = cloneDeep(data.cfg);
-    this.level = data.level;
-    this.timestamp = cloneObject<LogTimestamp>(data.timestamp);
+    this._level = data.level;
+    this.definition = data.definition ? { ...data.definition } : null;
+    this.args = data.args ? [...data.args] : null;
+    this.timestamp = data.timestamp ? { ...data.timestamp } : null;
     this.stacktrace = data.stacktrace;
-    this.definition = cloneObject<LogLevelDefinition>(data.definition);
-    this.args = cloneArray<unknown>(data.args);
-    this.namespaceVal = cloneArray<string>(data.namespace);
-    this.labelVal = getLabel(data.label.name ?? '') ?? null;
+    this._namespaceVal = data.namespace ? [...data.namespace] : null;
+    this._labelVal = getLabel(data.label.name ?? '') ?? null;
     this.dumpContext = data.dumpContext;
     this.isSilent = data.isSilent;
     this.timeNowVal = data.timeNow;
     this.metaData = { ...data.meta };
 
     return this;
+  }
+
+  private isFinalLogData(
+    values: LogDataValues | FinalLogDataValues
+  ): values is FinalLogDataValues {
+    return (
+      values.level !== null &&
+      values.definition !== null &&
+      values.args !== null &&
+      values.timestamp !== null
+    );
   }
 }

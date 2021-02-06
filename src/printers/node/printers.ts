@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { FinalLog, LogLevelDefinition, LogRender } from '../../_contracts';
 import { applyRender, fNamespace } from '../shared';
-import { env } from '../../global';
+import { env } from '../../Env';
 import { initialCaps } from '../../util';
 
 // ------- PRINT METHODS -------- //

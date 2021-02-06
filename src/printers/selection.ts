@@ -1,5 +1,5 @@
 import { PrintFunction } from '../_contracts';
-import { isBrowser } from '../global';
+import { isBrowser } from '../Env';
 import {
   printLog as printLogBrowser,
   printGroup as printGroupBrowser,

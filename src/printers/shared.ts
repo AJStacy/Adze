@@ -1,5 +1,5 @@
 import { FinalLog, LogRender, ConsoleMethod } from '../_contracts';
-import { env } from '../global';
+import { Env } from '../Env';
 import { isString } from '../util';
 
 // ------- PRINT ENTRY -------- //

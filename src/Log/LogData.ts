@@ -4,26 +4,9 @@ import {
   LogLevelDefinition,
   LabelData,
   LogTimestamp,
+  LogDataValues,
 } from '../_contracts';
-import { Log } from './Log';
-
-export interface LogDataValues {
-  cfg: Defaults;
-  level: number | null;
-  definition: LogLevelDefinition | null;
-  args: unknown[] | null;
-  timestamp: LogTimestamp | null;
-  stacktrace: string | null;
-  namespace: string[] | null;
-  dumpContext: boolean;
-  meta: MetaData;
-  context: MetaData;
-  label: LabelData;
-  timeNow: string | null;
-  assertion?: boolean;
-  expression?: boolean;
-  isSilent: boolean;
-}
+import { Log } from '.';
 
 export class LogData {
   /**
@@ -34,7 +17,7 @@ export class LogData {
   /**
    * Data values derived from an Adze log instance.
    */
-  public readonly values: LogDataValues;
+  protected readonly values: LogDataValues;
 
   constructor(log: Log, values: LogDataValues) {
     this.log = log;

@@ -12,7 +12,7 @@ import { print, toConsole } from '../printers';
 import { allowed, evalPasses } from '../conditions';
 import { mutateProps, timestamp, stacktrace, cloneLog } from '../util';
 import { shedExists } from '../shed';
-import { env } from '../global';
+import { env } from '../Env';
 
 /**
  * Seals the configuration of a log and returns a function that

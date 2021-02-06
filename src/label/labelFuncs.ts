@@ -1,5 +1,5 @@
 import { Label } from './Label';
-import { env } from '../global';
+import { env } from '../Env';
 import { shedExists } from '../shed';
 
 /**

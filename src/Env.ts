@@ -22,7 +22,7 @@ declare global {
 export class Env {
   public readonly global: Window | NodeJS.Global;
 
-  public readonly isBrowser: boolean = typeof window !== 'undefined';
+  public readonly isBrowser: boolean = Env.isBrowser();
 
   public _isChrome = false;
 
@@ -31,26 +31,14 @@ export class Env {
   public _isSafari = false;
 
   constructor() {
-    this.global = this.isBrowser ? window : global;
+    this.global = Env.global();
 
-    if (this.envIsWindow(this.global)) {
-      this._isChrome = this.global.navigator?.userAgent?.indexOf('Chrome') > -1;
-
-      this._isFirefox =
-        this.global.navigator?.userAgent?.indexOf('Firefox') > -1;
-
-      this._isSafari =
-        this.global.navigator?.userAgent?.indexOf('Safari') > -1 &&
-        !this._isChrome;
+    if (Env.envIsWindow(this.global)) {
+      this._isChrome = Env.isChrome();
+      this._isFirefox = Env.isFirefox();
+      this._isSafari = Env.isSafari();
     }
   }
-
-  /**
-   * TypeGuard to determine if the env value is the Window object.
-   */
-  public envIsWindow = (env: Window | NodeJS.Global): env is Window => {
-    return this.isBrowser;
-  };
 
   /**
    * Getter for identifying if the current environment is the Chrome browser.
@@ -71,5 +59,61 @@ export class Env {
    */
   public get isSafari(): boolean {
     return this._isSafari;
+  }
+
+  /**
+   * Static method that returns the environment's global context.
+   */
+  public static global(): Window | NodeJS.Global {
+    return Env.isBrowser() ? window : global;
+  }
+
+  /**
+   * Static method that validates the current environment is `Window`.
+   */
+  public static isBrowser(): boolean {
+    return typeof window !== 'undefined';
+  }
+
+  /**
+   * TypeGuard to determine if the env value is the Window object.
+   */
+  public static envIsWindow = (env: Window | NodeJS.Global): env is Window => {
+    return Env.isBrowser();
+  };
+
+  /**
+   * Static method that validates the current environment is Chrome.
+   */
+  public static isChrome(): boolean {
+    const _glbl = Env.global();
+    if (Env.envIsWindow(_glbl)) {
+      return _glbl.navigator?.userAgent?.indexOf('Chrome') > -1;
+    }
+    return false;
+  }
+
+  /**
+   * Static method that validates the current environment is Firefox.
+   */
+  public static isFirefox(): boolean {
+    const _glbl = Env.global();
+    if (Env.envIsWindow(_glbl)) {
+      return _glbl.navigator?.userAgent?.indexOf('Firefox') > -1;
+    }
+    return false;
+  }
+
+  /**
+   * Static method that validates the current environment is Safari.
+   */
+  public static isSafari(): boolean {
+    const _glbl = Env.global();
+    if (Env.envIsWindow(_glbl)) {
+      return (
+        _glbl.navigator?.userAgent?.indexOf('Safari') > -1 && !Env.isChrome()
+      );
+    }
+    return false;
   }
 }
