@@ -136,7 +136,7 @@ export class BrowserPrinter extends SharedPrinter {
    * modifier applied to this log.
    */
   public fLabel(): string {
-    return this.data.label ? `[${this.data.label.name}] ` : '';
+    return this.data.label.name ? `[${this.data.label.name}] ` : '';
   }
 
   /**

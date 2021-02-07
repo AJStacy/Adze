@@ -3,7 +3,6 @@ import { adze } from './adze';
 import { bundle } from './bundle';
 import { shedExists, createShed, removeShed } from './shed';
 import { defaults } from './_defaults';
-import { fireListeners } from './terminators';
 import {
   filterLabel,
   filterLevelRange,
@@ -27,5 +26,4 @@ export {
   loopCollection,
   render,
   rerender,
-  fireListeners,
 };

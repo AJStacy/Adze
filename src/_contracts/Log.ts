@@ -43,7 +43,7 @@ export interface MetaData {
 type Arguments = unknown[];
 export type LogRender = [ConsoleMethod, Arguments];
 
-export type Collection = FinalLogData[];
+export type Collection = Log[];
 
 export interface LogData {
   cfg: Defaults;

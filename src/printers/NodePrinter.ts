@@ -141,7 +141,7 @@ export class NodePrinter extends SharedPrinter {
    * modifier applied to this log.
    */
   private fLabel(): string {
-    return this.data.label ? `[${this.data.label.name}] ` : '';
+    return this.data.label.name ? `[${this.data.label.name}] ` : '';
   }
 
   /**

@@ -24,7 +24,7 @@ export function stacktrace(): string | null {
 export function getSearchParams(): URLSearchParams | undefined {
   const env = new Env();
   const ctxt = env.global;
-  if (env.envIsWindow(ctxt)) {
+  if (Env.envIsWindow(ctxt)) {
     return new URLSearchParams(ctxt.document.location.search.substring(1));
   }
 }

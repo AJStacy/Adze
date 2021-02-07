@@ -15,6 +15,7 @@ import {
   FinalLogData,
   LogRender,
 } from './_contracts';
+import { Log } from './Log';
 import { Label } from './label';
 import { defaults, shed_defaults } from './_defaults';
 import { isString, formatLevels } from './util';
@@ -127,7 +128,7 @@ export class Shed {
   /**
    * Store a log in the shed for later recall.
    */
-  public store(log: FinalLogData): void {
+  public store(log: Log): void {
     if (this.cache.length < this.cfg.cache_limit) {
       this.cache = this.cache.concat([log]);
     }
@@ -154,7 +155,7 @@ export class Shed {
   public getCollection(levels: LevelFilter): Collection {
     const lvls = formatLevels(this.cfg.global_cfg, levels);
     return this.cache.reduce((acc, log) => {
-      return acc.concat(lvls.includes(log.level) ? [log] : []);
+      return acc.concat(lvls.includes(log.level ?? Infinity) ? [log] : []);
     }, [] as Collection);
   }
 

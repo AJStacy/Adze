@@ -20,7 +20,6 @@ import { Env } from '../Env';
 import { Printer } from '../printers';
 import { allowed } from '../conditions';
 import { shedExists } from '../shed';
-import { values } from 'lodash';
 
 export class Log {
   /**
@@ -138,6 +137,10 @@ export class Log {
     this.Printer = printer;
     this.env = env;
     this.cfg = defaultsDeep(user_cfg, defaults) as Defaults;
+  }
+
+  public get level(): number | null {
+    return this._level;
   }
 
   public get render(): LogRender | null {
@@ -698,16 +701,16 @@ export class Log {
     type: 'log_levels' | 'custom_levels',
     levelName: string
   ): LogLevelDefinition | undefined {
+    let definition = this.cfg[type][levelName];
+
     const shed = this.env.global.$shed;
     if (shedExists(shed)) {
-      const definition = shed.hasOverrides
+      definition = shed.hasOverrides
         ? shed.overrides?.[type]?.[levelName]
-        : this.cfg[type][levelName];
-
-      if (definition) {
-        return { ...definition, levelName };
-      }
+        : definition;
     }
+
+    return definition ? { ...definition, levelName } : undefined;
   }
 
   /**
@@ -747,7 +750,7 @@ export class Log {
               toConsole(render, this.isSilent);
 
               // Fire log events
-              this.store(log_data);
+              this.store();
               this.fireListeners(log_data, render);
 
               // Return the terminated log object for testing purposes
@@ -788,10 +791,10 @@ export class Log {
   /**
    * Stores this log in the Shed if the Shed exists.
    */
-  private store(data: FinalLogData): void {
+  private store(): void {
     const shed = this.env.global.$shed;
     if (shedExists(shed)) {
-      shed.store(data);
+      shed.store(this);
     }
   }
 

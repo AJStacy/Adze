@@ -1,4 +1,6 @@
 import { Bundle, Bundler } from './_contracts';
+import { Printer } from './printers';
+import { Env } from './Env';
 import { Log, BundledLog } from './Log';
 
 /**
@@ -17,7 +19,9 @@ import { Log, BundledLog } from './Log';
 export function bundle(log: Log): Bundler {
   const bundle_arr = [] as Bundle;
   return () => {
-    const bundled_log = new BundledLog(bundle_arr).hydrate(log.data);
+    const bundled_log = new BundledLog(Printer, new Env(), bundle_arr).hydrate(
+      log.data
+    );
     bundle_arr.push(bundled_log);
     return bundled_log;
   };

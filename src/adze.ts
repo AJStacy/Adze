@@ -1,7 +1,4 @@
-import defaultsDeep from 'lodash/defaultsDeep';
-
-import { Configuration, Defaults } from './_contracts';
-import { defaults } from './_defaults';
+import { Configuration } from './_contracts';
 import { Log } from './Log';
 import { Printer } from './printers';
 import { Env } from './Env';
@@ -35,6 +32,6 @@ import { Env } from './Env';
  * 7. debug
  * 8. verbose
  */
-export function adze(user_cfg: Configuration = {}) {
+export function adze(user_cfg: Configuration = {}): Log {
   return new Log(Printer, new Env(), user_cfg);
 }
