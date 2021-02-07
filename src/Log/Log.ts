@@ -8,21 +8,19 @@ import {
   ModifierQueue,
   MetaData,
   LogLevelDefinition,
-  TerminatedLog,
-  SelectedDef,
-  DefGroup,
   PrintMethod,
-  LogDataValues,
-  FinalLogDataValues,
+  LogData,
+  FinalLogData,
+  TerminatedLog,
 } from '../_contracts';
 import { isString, stacktrace, timestamp, toConsole } from '../util';
 import { Label, addLabel, getLabel } from '../label';
-import { LogData, FinalLogData } from '.';
 import { defaults } from '../_defaults';
 import { Env } from '../Env';
 import { Printer } from '../printers';
 import { allowed } from '../conditions';
 import { shedExists } from '../shed';
+import { values } from 'lodash';
 
 export class Log {
   /**
@@ -59,7 +57,7 @@ export class Log {
   /**
    * The log render after this log has been terminated.
    */
-  private render: LogRender | null = null;
+  private _render: LogRender | null = null;
 
   /**
    * The timestamp object generated when this log has been terminated.
@@ -142,25 +140,8 @@ export class Log {
     this.cfg = defaultsDeep(user_cfg, defaults) as Defaults;
   }
 
-  /**
-   * Public getter for the level of this log.
-   */
-  public get level(): number | null {
-    return this._level;
-  }
-
-  /**
-   * Public getter for the namespace of this log.
-   */
-  public get namespaceVal(): string[] | null {
-    return this._namespaceVal;
-  }
-
-  /**
-   * Public getter for the label of this log.
-   */
-  public get labelVal(): Label | null {
-    return this._labelVal;
+  public get render(): LogRender | null {
+    return this._render;
   }
 
   // ======================================
@@ -713,7 +694,10 @@ export class Log {
   /**
    * Gets the log level definition from the log configuration.
    */
-  private getDefinition(type: DefGroup, levelName: string): SelectedDef {
+  private getDefinition(
+    type: 'log_levels' | 'custom_levels',
+    levelName: string
+  ): LogLevelDefinition | undefined {
     const shed = this.env.global.$shed;
     if (shedExists(shed)) {
       const definition = shed.hasOverrides
@@ -729,7 +713,10 @@ export class Log {
   /**
    * The primary execution pipeline for terminating log methods.
    */
-  private executionPipeline(def: SelectedDef, args: unknown[]): TerminatedLog {
+  private executionPipeline(
+    def: LogLevelDefinition | undefined,
+    args: unknown[]
+  ): TerminatedLog {
     if (def && allowed(this.cfg, def)) {
       // Apply modifiers in the proper order.
       this.runModifierQueue();
@@ -743,24 +730,29 @@ export class Log {
         this.timestamp = timestamp();
         this.stacktrace = this.cfg.capture_stacktrace ? stacktrace() : null;
 
-        // If a global context exists, check if this log is allowed.
-        const globally_allowed =
-          this.env.global.$shed?.logGloballyAllowed(this) ?? true;
+        // Set this log data to a variable for type checking
+        const log_data = this.data;
 
-        if (globally_allowed) {
-          // Render the log and print to the console
-          const render = new Printer(this.data)[this.printer]();
+        if (this.isFinalLogData(log_data)) {
+          // If a global context exists, check if this log is allowed.
+          const globally_allowed =
+            this.env.global.$shed?.logGloballyAllowed(log_data) ?? true;
 
-          if (render) {
-            // Write the LogRender to the console.
-            toConsole(render, this.isSilent);
+          if (globally_allowed) {
+            // Render the log and print to the console
+            const render = new Printer(log_data)[this.printer]();
 
-            // Fire log events
-            this.store();
-            this.fireListeners();
+            if (render) {
+              // Write the LogRender to the console.
+              toConsole(render, this.isSilent);
 
-            // Return the terminated log object for testing purposes
-            return { log: this, render };
+              // Fire log events
+              this.store(log_data);
+              this.fireListeners(log_data, render);
+
+              // Return the terminated log object for testing purposes
+              return { log: this, render };
+            }
           }
         }
       }
@@ -796,20 +788,20 @@ export class Log {
   /**
    * Stores this log in the Shed if the Shed exists.
    */
-  private store(): void {
+  private store(data: FinalLogData): void {
     const shed = this.env.global.$shed;
     if (shedExists(shed)) {
-      shed.store(this);
+      shed.store(data);
     }
   }
 
   /**
    * Fires listeners for this log instance if a Shed exists.
    */
-  private fireListeners(): void {
+  private fireListeners(data: FinalLogData, render: LogRender): void {
     const shed = this.env.global.$shed;
     if (shedExists(shed)) {
-      shed.fireListeners(this);
+      shed.fireListeners(data, render);
     }
   }
 
@@ -821,7 +813,7 @@ export class Log {
    * Creates a slimmed down object comprised of data from a log.
    */
   public get data(): LogData | FinalLogData {
-    const values: LogDataValues = {
+    const values: LogData = {
       cfg: cloneDeep(this.cfg),
       level: this._level,
       definition: this.definition ? { ...this.definition } : null,
@@ -842,9 +834,9 @@ export class Log {
       context: { ...this.context },
     };
     if (this.isFinalLogData(values)) {
-      return new FinalLogData(this, values);
+      return values as FinalLogData;
     }
-    return new LogData(this, values);
+    return values;
   }
 
   /**
@@ -868,8 +860,8 @@ export class Log {
   }
 
   private isFinalLogData(
-    values: LogDataValues | FinalLogDataValues
-  ): values is FinalLogDataValues {
+    values: LogData | FinalLogData
+  ): values is FinalLogData {
     return (
       values.level !== null &&
       values.definition !== null &&

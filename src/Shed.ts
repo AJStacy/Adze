@@ -12,12 +12,12 @@ import {
   ListenerCallback,
   LabelMap,
   FilterAllowedCallback,
+  FinalLogData,
+  LogRender,
 } from './_contracts';
-import { FinalLogData } from './Log';
 import { Label } from './label';
 import { defaults, shed_defaults } from './_defaults';
 import { isString, formatLevels } from './util';
-import { makeLogData } from './terminators';
 import { Env } from './Env';
 
 /**
@@ -153,7 +153,6 @@ export class Shed {
    */
   public getCollection(levels: LevelFilter): Collection {
     const lvls = formatLevels(this.cfg.global_cfg, levels);
-    console.log('CACHE', this.cache);
     return this.cache.reduce((acc, log) => {
       return acc.concat(lvls.includes(log.level) ? [log] : []);
     }, [] as Collection);
@@ -252,9 +251,9 @@ export class Shed {
    * Fire any log listeners for the provided log. Passes the log render
    * and a slimmed down log data object.
    */
-  public fireListeners(log: FinalLogData): void {
+  public fireListeners(log: FinalLogData, render: LogRender): void {
     this.listeners.get(log.level)?.forEach((listener) => {
-      listener(log_data, log.render);
+      listener(log, render);
     });
   }
 
@@ -293,7 +292,7 @@ export class Shed {
   private labelAllowed(log: FinalLogData): boolean {
     return this.filterAllowed('label', (filter, func) => {
       const source = this.cfg.filters?.label?.[filter] ?? ([] as string[]);
-      return this[func]<string>(source, log?.labelVal?.name ?? '');
+      return this[func]<string>(source, log.label.name ?? '');
     });
   }
 
@@ -304,7 +303,7 @@ export class Shed {
   private namespaceAllowed(log: FinalLogData): boolean {
     return this.filterAllowed('namespace', (filter, func) => {
       const source = this.cfg.filters?.namespace?.[filter] ?? ([] as string[]);
-      const target = log.namespaceVal;
+      const target = log.namespace;
       if (target) {
         if (isString(target)) {
           return this[func]<string>(source, target);

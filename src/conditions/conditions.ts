@@ -1,5 +1,4 @@
 import { Defaults, LogLevelDefinition } from '../_contracts';
-import { Log } from '../Log';
 import { Env } from '../Env';
 import { getSearchParams } from '../util';
 

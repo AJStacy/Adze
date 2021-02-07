@@ -1,4 +1,4 @@
-import { FinalLogData } from '../Log';
+import { FinalLogData } from '../_contracts';
 import { Env } from '../Env';
 import { isString } from '../util';
 

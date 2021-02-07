@@ -1,4 +1,4 @@
-import { Log, LogFunction } from './_contracts';
+import { Log } from './Log';
 import { adze } from './adze';
 import { bundle } from './bundle';
 import { shedExists, createShed, removeShed } from './shed';
@@ -20,7 +20,6 @@ export {
   removeShed,
   defaults,
   Log,
-  LogFunction,
   bundle,
   filterLabel,
   filterLevelRange,

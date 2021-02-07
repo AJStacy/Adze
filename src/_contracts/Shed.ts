@@ -1,7 +1,5 @@
-import { Defaults, MetaData } from '.';
 import { Label } from '../label';
-import { Configuration, LogLevelDefinition } from './Configuration';
-import { LogRender, LogTimestamp } from './Log';
+import { Defaults, Configuration, LogRender, LogData } from '.';
 
 export type CacheLocation = 'memory' | 'localStorage';
 
@@ -56,21 +54,6 @@ export type FilterAllowedCallback = (
   filter: FilterType,
   func: FilterFunction
 ) => boolean | undefined;
-
-export interface LogData {
-  cfg: Defaults;
-  timestamp: LogTimestamp;
-  level: number;
-  stacktrace: string | null;
-  definition: LogLevelDefinition;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  args: unknown[];
-  namespace: string | string[] | null;
-  label: LabelData;
-  timeNow: string | null;
-  meta: MetaData;
-  context: MetaData;
-}
 
 export interface LabelData {
   name: string | null;

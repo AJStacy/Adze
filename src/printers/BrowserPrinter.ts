@@ -1,6 +1,5 @@
-import { FinalLogData } from 'src/Log';
 import { SharedPrinter } from './SharedPrinter';
-import { LogRender } from '../_contracts';
+import { LogRender, FinalLogData } from '../_contracts';
 import { initialCaps } from '../util';
 
 export class BrowserPrinter extends SharedPrinter {

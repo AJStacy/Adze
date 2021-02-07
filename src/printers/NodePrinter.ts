@@ -1,7 +1,6 @@
 import chalk from 'chalk';
-import { FinalLogData } from '../Log';
 import { SharedPrinter } from './SharedPrinter';
-import { LogRender } from '../_contracts';
+import { LogRender, FinalLogData } from '../_contracts';
 import { initialCaps } from '../util';
 
 export class NodePrinter extends SharedPrinter {

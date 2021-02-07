@@ -36,6 +36,5 @@ import { Env } from './Env';
  * 8. verbose
  */
 export function adze(user_cfg: Configuration = {}) {
-  const cfg = defaultsDeep(user_cfg, defaults) as Defaults;
-  const log = new Log(new Env(), user_cfg);
+  return new Log(Printer, new Env(), user_cfg);
 }
