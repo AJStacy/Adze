@@ -1,8 +1,6 @@
 import { Label } from '../label';
 import { Defaults, Configuration, LogRender, LogData } from '.';
 
-export type CacheLocation = 'memory' | 'localStorage';
-
 export type LabelMap = Map<string, Label>;
 
 export type ListenerLocations = Array<[number, number]>;
@@ -14,7 +12,6 @@ export type ListenerBucket = Map<number, ListenerCallback>;
 export type ListenerCallback = (LogData: LogData, render: LogRender) => void;
 
 export interface ShedConfig {
-  cache_location: CacheLocation;
   cache_limit: number;
   global_cfg: Defaults | null;
   filters: AdzeFilters;
